@@ -1,0 +1,175 @@
+import requests
+import csv
+import xlwt
+
+COUNTIES = {
+    "Alabama": ["Jefferson", "Montgomery"],
+    "Arkansas": ["Benton" , "Washington"],
+    "Florida": ["Miami-Dade"],
+    "Georgia": ["Muscogee"],
+    "Kentucky": ["Perry" , "Jefferson" , "Pike" , "Letcher"],
+    "Louisiana": ["East Carroll" ,  "Orleans" , "Madison"],
+    "Mississippi": ["Bolivar" , "Sunflower" , "Washington" , "Hinds" , ],
+    "North Carolina": ["Mecklenburg"],
+    "South Carolina": ["Charleston"],
+    "Tennessee": ["Knox"],
+    "Texas": ["Harris"],
+    "Virginia": ["Richmond city"],
+    "West Virginia": ["Kanawha" , "Boone" , "Mingo"]
+}
+
+DEFAULT_RECORD = {
+    "cases": 0,
+    "deaths": 0,
+}
+
+# fetch the latest covid records per state and county
+result = requests.get("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+
+# write the covid cases to a temporary file
+with open("data" , "w") as file:
+    file.write(result.text)
+
+def get_data(file_path):
+    """
+    Reads the historical records from given CSV file.
+
+    :param file_path: The path to the CSV file.
+    """
+    data = {}
+    with open("data" , "r") as file:
+        csvreader = csv.DictReader(file)
+
+        # loop through every record
+        for row in csvreader:
+            # get the state, county and date for the current record.
+            state = row["state"]
+            county = row["county"]
+            date = row["date"]
+
+            if state not in data :
+                data[state] = {}
+
+            if county not in data [state]:
+                data[state][county] = {}
+
+            # accumulate the county-level data to the data object, indexed by
+            # state, then county.
+            data[state][county][date] = row
+    return data 
+
+def get_state_data(state, data):
+    """
+    Gets the cases and deaths, per date, for a given state.
+
+    :param state: The name of the state to query data for.
+    :param data: The data parsed from the CSV file.
+
+    outputs data in the given format:
+    {
+        "2020-03-30": {
+            "cases": 20,
+            "deaths": 5
+        },
+        "2020-03-31": {
+            "cases": 45,
+            "deaths": 2
+        }
+    }
+    """
+    per_day = {}
+
+    # get the data for the state
+    state_data = data[state]
+
+    # loop over all the county data for the state.
+    for county in state_data:
+        # loop through all the dates in the county records.
+        for date in state_data[county]:
+            # get the data for the current date, in the given county.
+            row = data[state][county][date]
+
+            if date not in per_day :
+                per_day [date] = {"cases": 0, "deaths": 0}
+            
+            # accumulate the county level cases and deaths to the overall
+            # state cases and deaths count, for the current date.
+            per_day[date]["cases"] += int(row["cases"])
+            per_day[date]["deaths"] += int(row["deaths"])
+
+    # return the state data, organized per day.
+    return per_day
+
+
+def get_county_data(county, state, data):
+    """
+    Gets the cases and deaths, per date, for a given county.
+
+    :param county: The name of the county to query data for.
+    :param state: The name of the county to query data for.
+    :param data: The data parsed from the CSV file.
+
+    outputs data in the given format:
+    {
+        "2020-03-30": {
+            "cases": 20,
+            "deaths": 5
+        },
+        "2020-03-31": {
+            "cases": 45,
+            "deaths": 2
+        }
+    }
+    """
+    per_day = {}
+
+    # get the records for the given state
+    state_data = data[state]
+
+    # get the records for the given county
+    county_data = state_data[county]
+
+    for date in county_data:
+        per_day[date] = {}
+        per_day[date]["cases"] = county_data[date]["cases"]
+        per_day[date]["deaths"] = county_data[date]["deaths"]
+    
+    return per_day
+
+
+
+data = get_data("data")
+
+
+def write_header(sheet):
+    sheet.write(0, 1, "County Cases")
+    sheet.write(0, 2, "County Deaths")
+    sheet.write(0, 3, "State Cases")
+    sheet.write(0, 4, "State Death")
+    
+wb = xlwt.Workbook(encoding="utf-8")
+
+def export_county_data_to_excel(wb, county, state, data):
+    sheet_name = "{}-{}".format(county, state)
+    sheet = wb.add_sheet(sheet_name)
+    write_header(sheet)
+
+    state_data = get_state_data(state, data)
+    county_data = get_county_data(county, state, data)
+
+    for row, date in enumerate(state_data):
+        state_records = state_data.get(date)
+        county_records = county_data.get(date, DEFAULT_RECORD)
+
+        sheet.write(row+1, 0, date)
+        sheet.write(row+1, 1, county_records["cases"])
+        sheet.write(row+1, 2, county_records["deaths"])
+        sheet.write(row+1, 3, state_records["cases"])
+        sheet.write(row+1, 4, state_records["deaths"])
+
+for state in COUNTIES: 
+    for county in COUNTIES[state]:
+        export_county_data_to_excel(wb, county, state, data)
+
+wb.save("headfile.xls")
+
