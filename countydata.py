@@ -2,6 +2,8 @@ import requests
 import csv
 import xlwt
 
+import statedata
+
 COUNTIES = {
     "Alabama": ["Jefferson", "Montgomery"],
     "Arkansas": ["Benton" , "Washington"],
@@ -141,18 +143,16 @@ def get_county_data(county, state, data):
 data = get_data("data")
 
 
-def write_header(sheet):
-    sheet.write(0, 1, "County Cases")
-    sheet.write(0, 2, "County Deaths")
-    sheet.write(0, 3, "State Cases")
-    sheet.write(0, 4, "State Death")
+def write_header(sheet, columns):
+    for index, column in enumerate(columns):
+        sheet.write(0, index + 1, column)
     
 wb = xlwt.Workbook(encoding="utf-8")
 
 def export_county_data_to_excel(wb, county, state, data):
     sheet_name = "{}-{}".format(county, state)
     sheet = wb.add_sheet(sheet_name)
-    write_header(sheet)
+    write_header(sheet, ["County Cases", "County Deaths", "State Cases", "State Deaths"])
 
     state_data = get_state_data(state, data)
     county_data = get_county_data(county, state, data)
@@ -167,9 +167,27 @@ def export_county_data_to_excel(wb, county, state, data):
         sheet.write(row+1, 3, state_records["cases"])
         sheet.write(row+1, 4, state_records["deaths"])
 
+state_metadata = statedata.get_data()
+
+def export_state_metadata_to_excel(wb, state, data):
+    sheet_name = "{} metadata".format(state)
+    sheet = wb.add_sheet(sheet_name)
+    write_header(sheet, ["Hospitalized Currently", "Hospitalized Cumulative"])
+
+    state_data = state_metadata[state]
+
+    dates = list(reversed(list(state_data.keys())))
+    for row, date in enumerate(dates):
+        state_records = state_data.get(date)
+        sheet.write(row+1, 0, date)
+        sheet.write(row+1, 1, state_records["hospitalized_currently"])
+        sheet.write(row+1, 2, state_records["hospitalized_cumulative"])
+
 for state in COUNTIES: 
     for county in COUNTIES[state]:
         export_county_data_to_excel(wb, county, state, data)
 
-wb.save("headfile.xls")
+for state in statedata.STATES:
+    export_state_metadata_to_excel(wb, state, state_metadata)
 
+wb.save("headfile.xls")
