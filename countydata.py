@@ -172,16 +172,47 @@ state_metadata = statedata.get_data()
 def export_state_metadata_to_excel(wb, state, data):
     sheet_name = "{} metadata".format(state)
     sheet = wb.add_sheet(sheet_name)
-    write_header(sheet, ["Hospitalized Currently", "Hospitalized Cumulative"])
 
+    columns = [
+        "hospitalized_currently",
+        "hospitalized_cumulative",
+        "cases_total",
+        "cases_white",
+        "cases_black",
+        "cases_latinx",
+        "cases_asian",
+        "cases_aian",
+        "cases_nhpi",
+        "cases_multiracial",
+        "cases_other",
+        "cases_unknown",
+        "cases_ethnicity_hispanic",
+        "cases_ethnicity_nonhispanic",
+        "cases_ethnicity_unknown",
+        "deaths_total",
+        "deaths_white",
+        "deaths_black",
+        "deaths_latinx",
+        "deaths_asian",
+        "deaths_aian",
+        "deaths_nhpi",
+        "deaths_multiracial",
+        "deaths_other",
+        "deaths_unknown",
+        "deaths_ethnicity_hispanic",
+        "deaths_ethnicity_nonhispanic",
+        "deaths_ethnicity_unknown"
+    ]
+
+    write_header(sheet, columns)
     state_data = state_metadata[state]
 
     dates = list(reversed(list(state_data.keys())))
     for row, date in enumerate(dates):
         state_records = state_data.get(date)
         sheet.write(row+1, 0, date)
-        sheet.write(row+1, 1, state_records["hospitalized_currently"])
-        sheet.write(row+1, 2, state_records["hospitalized_cumulative"])
+        for index, column in enumerate(columns):
+            sheet.write(row+1, index+1, state_records.get(column))
 
 for state in COUNTIES: 
     for county in COUNTIES[state]:
