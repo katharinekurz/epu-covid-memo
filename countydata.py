@@ -1,7 +1,7 @@
 import requests
 import csv
 import xlwt
-
+import datetime
 import statedata
 
 COUNTIES = {
@@ -138,16 +138,63 @@ def get_county_data(county, state, data):
     
     return per_day
 
-
-
 data = get_data("data")
 
+
+# Tuesday is the 2nd day of the week, starting from 0, so
+# it's represented as 1.
+TUESDAY = 1
+
+def get_tuesday_range():
+    """
+    Returns a date pointing to the most recent Tuesday, and another date
+    pointing to the wednesday before it.
+    """
+    today = datetime.date.today()
+
+    # this is the number of days from Tuesday
+    day_delta = today.weekday() - TUESDAY
+
+    week_delta = 0
+
+    if day_delta < 0:
+        # if day_delta is negitive, we need to look at last week.
+        week_delta = 1
+
+    most_recent_tuesday = today - datetime.timedelta(days=day_delta, weeks=week_delta)
+    previous_tuesday = today - datetime.timedelta(days=day_delta, weeks=week_delta + 1)
+
+    return previous_tuesday, most_recent_tuesday
+
+
+def get_next_day(date):
+    """
+    Returns the next day's date, relative to the given date.
+    """
+    return date + datetime.timedelta(days=1)
+
+def get_week_interval():
+    """
+    Returns a list of date strings for the last 8 days, from the most recent tuesday,
+    in ascending order.
+    """
+    start_day, end_day = get_tuesday_range()
+    current_day = start_day
+    date_strings = []
+
+    while current_day.ctime() != get_next_day(end_day).ctime():
+        date_string = current_day.strftime('%Y-%m-%d')
+        date_strings.append(date_string)
+        current_day = get_next_day(current_day)
+
+    return date_strings
 
 def write_header(sheet, columns):
     for index, column in enumerate(columns):
         sheet.write(0, index + 1, column)
     
 wb = xlwt.Workbook(encoding="utf-8")
+
 
 def export_county_data_to_excel(wb, county, state, data):
     sheet_name = "{}-{}".format(county, state)
@@ -214,11 +261,51 @@ def export_state_metadata_to_excel(wb, state, data):
         for index, column in enumerate(columns):
             sheet.write(row+1, index+1, state_records.get(column))
 
+
+def export_county_increases_to_excel(wb, county, state, data):
+    sheet_name = "{}-{}-i".format(county, state)
+    sheet = wb.add_sheet(sheet_name)
+    write_header(sheet, ["County Case Increases", "County Death Increases", "State Case Increases", "State Death Increases"])
+    
+    state_data = get_state_data(state, data)
+    county_data = get_county_data(county, state, data)
+
+    date_strings = get_week_interval()
+
+    start_date = date_strings[0]
+    last_state_cases = int(state_data.get(start_date).get("cases"))
+    last_state_deaths = int(state_data.get(start_date).get("deaths"))
+    last_county_cases = int(county_data.get(start_date).get("cases"))
+    last_county_deaths = int(county_data.get(start_date).get("deaths"))
+
+
+    for row, date in enumerate(date_strings[1:]):
+        state_records = state_data.get(date, DEFAULT_RECORD)
+        county_records = county_data.get(date, DEFAULT_RECORD)
+
+        sheet.write(row+1, 0, date)
+        sheet.write(row+1, 1, max([int(county_records["cases"])-last_county_cases, 0]))
+        sheet.write(row+1, 2, max([int(county_records["deaths"])-last_county_deaths, 0]))
+        sheet.write(row+1, 3, max([int(state_records["cases"])-last_state_cases, 0]))
+        sheet.write(row+1, 4, max([int(state_records["deaths"])-last_state_deaths, 0]))
+
+        last_county_cases = int(county_records["cases"])
+        last_county_deaths = int(county_records["deaths"])
+        last_state_cases = int(state_records["cases"])
+        last_state_deaths = int(state_records["deaths"])
+
+        
+        
+        
+    
+
 for state in COUNTIES: 
     for county in COUNTIES[state]:
         export_county_data_to_excel(wb, county, state, data)
+        export_county_increases_to_excel(wb, county, state, data)
 
 for state in statedata.STATES:
     export_state_metadata_to_excel(wb, state, state_metadata)
+
 
 wb.save("headfile.xls")
