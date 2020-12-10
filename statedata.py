@@ -20,7 +20,7 @@ STATES = [
 ]
 
 stateresults = requests.get("https://covidtracking.com/api/v1/states/daily.json")
-stateraceresults = requests.get("https://docs.google.com/spreadsheets/d/e/2PACX-1vR_xmYt4ACPDZCDJcY12kCiMiH0ODyx3E1ZvgOHB8ae1tRcjXbs_yWBOA4j4uoCEADVfC1PS2jYO68B/pub?gid=43720681&single=true&output=csv")
+stateraceresults = requests.get("https://docs.google.com/spreadsheets/d/e/2PACX-1vS8SzaERcKJOD_EzrtCDK1dX1zkoMochlA9iHoHg_RSw3V8bkpfk1mpw4pfL5RdtSOyx_oScsUtyXyk/pub?gid=43720681&single=true&output=csv")
 
 def get_date_string(date):
     return "{}-{}-{}".format(date[:4], date[4:6], date[6:8])
@@ -41,7 +41,7 @@ def get_data():
         if state not in data:
             data[state] = {}
         record = racedata[state].get(normalized_date, {})
-        record["date"] = normalized_date
+        record["Date"] = normalized_date
         record["hospitalized_currently"] = row["hospitalizedCurrently"]
         record["hospitalized_cumulative"] = row["hospitalizedCumulative"]
         data[state][normalized_date] = record
