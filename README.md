@@ -2,6 +2,14 @@
 
 > A script to automate the aggregation of state and county level COVID-19 statistics.
 
+<!-- tmpl start -->
+
+## Dataset (last updated Fri Dec 18 19:32:01 2020)
+
+Click [here](https://covid-artifacts.s3.amazonaws.com/records/2020-12-18-19321-covid_artifact.xls) to download.
+
+<!-- tmpl end -->
+
 Usage:
 ```
 curl -s -L https://raw.githubusercontent.com/katharinekurz/epu-covid-memo/master/scripts/run.sh | bash
