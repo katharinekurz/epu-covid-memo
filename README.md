@@ -10,7 +10,8 @@ Click [here](https://covid-artifacts.s3.amazonaws.com/records/2020-12-18-193344-
 
 <!-- tmpl end -->
 
-Usage:
+## Usage
+
 ```
 curl -s -L https://raw.githubusercontent.com/katharinekurz/epu-covid-memo/master/scripts/run.sh | bash
 ```
