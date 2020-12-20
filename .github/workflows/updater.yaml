@@ -1,7 +1,6 @@
 name: "Update dataset"
 on:
-  schedule:
-  - cron: "*/30 * * * *"
+  push
 
 jobs:
   update:
