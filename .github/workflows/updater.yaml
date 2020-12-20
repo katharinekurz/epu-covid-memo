@@ -15,4 +15,10 @@ jobs:
       with:
         python-version: '3.x'
     - run: make deps
-    - run: make update
+    - name: update dataset
+      run: make update
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        S3_BUCKET: covid-artifacts
+        AWS_DEFAULT_REGION: us-east-1
