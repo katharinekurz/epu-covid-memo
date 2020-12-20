@@ -4,6 +4,9 @@ ENTRYPOINT     := countydata.py
 
 .PHONY: generate
 
+deps:
+	pip3 install -r requirements.txt
+
 clean:
 	rm -rf data headfile.xls
 
