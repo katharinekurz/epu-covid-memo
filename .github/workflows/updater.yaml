@@ -1,6 +1,7 @@
 name: "Update dataset"
 on:
-  push
+  push:
+    branches: [master]
 
 jobs:
   update:
@@ -8,13 +9,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'Message to comment on stale issues. If none provided, will not mark issues stale'
-        stale-pr-message: 'Message to comment on stale PRs. If none provided, will not mark PRs stale'
+        ref: ${{ github.head_ref }}
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - run: make deps
+    - name: install dependencies
+      run: make deps
+    - name: setup git
+      run: |
+      git config --global user.email 'katharinekurz@gmail.com'
+      git config --global user.name 'Katharine Kurz'
     - name: update dataset
       run: make update
       env:
