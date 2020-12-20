@@ -16,7 +16,7 @@ jobs:
     - name: install dependencies
       run: make deps
     - run: git config --global user.email 'katharinekurz@gmail.com'
-    - run: onfig --global user.name 'Katharine Kurz'
+    - run: git config --global user.name 'Katharine Kurz'
     - name: update dataset
       run: make update
       env:
