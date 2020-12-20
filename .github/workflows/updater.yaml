@@ -1,7 +1,7 @@
 name: "Update dataset"
 on:
-  schedule:
-  - cron: "*/30 * * * *"
+  push:
+    branches: [master]
 
 jobs:
   update:
@@ -9,11 +9,20 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'Message to comment on stale issues. If none provided, will not mark issues stale'
-        stale-pr-message: 'Message to comment on stale PRs. If none provided, will not mark PRs stale'
+        ref: ${{ github.head_ref }}
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - run: make deps
-    - run: make update
+    - name: install dependencies
+      run: make deps
+    - name: setup git
+      run: |
+      git config --global user.email 'katharinekurz@gmail.com'
+      git config --global user.name 'Katharine Kurz'
+    - name: update dataset
+      run: make update
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        S3_BUCKET: covid-artifacts
+        AWS_DEFAULT_REGION: us-east-1
