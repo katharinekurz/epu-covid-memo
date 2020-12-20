@@ -15,10 +15,8 @@ jobs:
         python-version: '3.x'
     - name: install dependencies
       run: make deps
-    - name: setup git
-      run: |
-      git config --global user.email 'katharinekurz@gmail.com'
-      git config --global user.name 'Katharine Kurz'
+    - run: git config --global user.email 'katharinekurz@gmail.com'
+    - run: onfig --global user.name 'Katharine Kurz'
     - name: update dataset
       run: make update
       env:
