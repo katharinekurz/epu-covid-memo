@@ -4,9 +4,9 @@
 
 <!-- tmpl start -->
 
-## Dataset (last updated Wed Jun 30 12:11:30 2021)
+## Dataset (last updated Thu Jul  1 12:11:32 2021)
 
-Click [here](https://covid-artifacts.s3.amazonaws.com/records/2021-6-30-121130-covid_artifact.xls) to download.
+Click [here](https://covid-artifacts.s3.amazonaws.com/records/2021-7-1-121130-covid_artifact.xls) to download.
 
 <!-- tmpl end -->
 
