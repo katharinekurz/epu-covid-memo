@@ -1,7 +1,8 @@
 name: "Update dataset"
 on:
-  schedule:
-    - cron: '0 16 * * *'
+  workflow_dispatch:
+  #schedule:
+  # - cron: '0 16 * * *'
 
 jobs:
   update:
